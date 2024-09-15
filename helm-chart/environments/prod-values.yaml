@@ -1,0 +1,58 @@
+namespace: prod
+
+movieService:
+  image: damdam1977/movie-service:1.0-prod
+  replicas: 1
+  databaseUri: postgresql://movie_db_username:movie_db_password@movie-db.prod.svc.cluster.local/movie_db_prod
+  castServiceHostUrl: "http://cast-service.prod.svc.cluster.local:8000/api/v1/casts/"
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+  hpa:
+    minReplicas: 1
+    maxReplicas: 3
+    cpuUtilizationPercentage: 60
+
+movieDb:
+  postgresUser: movie_db_username
+  postgresPassword: movie_db_password
+  postgresDb: movie_db_prod
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+
+castService:
+  image: damdam1977/cast-service:1.0-prod
+  replicas: 1
+  databaseUri: postgresql://cast_db_username:cast_db_password@cast-db.prod.svc.cluster.local/cast_db_prod
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+  hpa:
+    minReplicas: 1
+    maxReplicas: 2
+    cpuUtilizationPercentage: 60
+
+castDb:
+  postgresUser: cast_db_username
+  postgresPassword: cast_db_password
+  postgresDb: cast_db_prod
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"

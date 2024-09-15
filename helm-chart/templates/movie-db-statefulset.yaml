@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: movie-db-credentials-{{ .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+type: Opaque
+data:
+  databaseUri: {{ .Values.movieService.databaseUri | b64enc }}
+  POSTGRES_USER: {{ .Values.movieDb.postgresUser | b64enc }}
+  POSTGRES_PASSWORD: {{ .Values.movieDb.postgresPassword | b64enc }}
+  POSTGRES_DB: {{ .Values.movieDb.postgresDb | b64enc }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: movie-config-{{ .Values.namespace }}
+  namespace: {{ .Values.namespace }}
+data:
+  CAST_SERVICE_HOST_URL: {{ .Values.movieService.castServiceHostUrl }}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: movie-db
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceName: "movie-db-headless"  # Link to the Headless Service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: movie-db
+  template:
+    metadata:
+      labels:
+        app: movie-db
+    spec:
+      containers:
+        - name: movie-db
+          image: postgres:12.1-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: movie-db-credentials-{{ .Values.namespace }}
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: movie-db-credentials-{{ .Values.namespace }}
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: movie-db-credentials-{{ .Values.namespace }}
+                  key: POSTGRES_DB
+          volumeMounts:
+            - name: movie-db-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "{{ .Values.movieDb.resources.requests.memory }}"
+              cpu: "{{ .Values.movieDb.resources.requests.cpu }}"
+            limits:
+              memory: "{{ .Values.movieDb.resources.limits.memory }}"
+              cpu: "{{ .Values.movieDb.resources.limits.cpu }}"
+  volumeClaimTemplates:
+    - metadata:
+        name: movie-db-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: movie-db-headless
+  namespace: {{ .Values.namespace }}
+spec:
+  clusterIP: None  # This makes it a Headless Service
+  selector:
+    app: movie-db
+  ports:
+    - port: 5432
+      targetPort: 5432
