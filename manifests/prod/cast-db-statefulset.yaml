@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cast-db-credentials-prod
+  namespace: prod
+type: Opaque
+data:
+  castDatabaseUri: cG9zdGdyZXNxbDovL21vdmllX2RiX3VzZXJfcHJvZDptb3ZpZV9kYl9wYXNzd29yZF9wcm9kQG1vdmllLWRiLnByb2Quc3ZjLmNsdXN0ZXIubG9jYWwvbW92aWVfZGJfcHJvZA== # postgresql://movie_db_user_prod:movie_db_password_prod@movie-db.prod.svc.cluster.local/movie_db_prod en base64
+  POSTGRES_USER: bW92aWVfZGJfdXNlcl9wcm9k  # movie_db_user_prod en base64
+  POSTGRES_PASSWORD: bW92aWVfZGJfcGFzc3dvcmRfcHJvZA== # movie_db_password_prod en base64
+  POSTGRES_DB: Y2FzdF9kYl9wcm9k  # cast_db_prod en base64
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cast-db
+  namespace: prod
+spec:
+  serviceName: "cast-db-headless"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cast-db
+  template:
+    metadata:
+      labels:
+        app: cast-db
+    spec:
+      containers:
+        - name: cast-db
+          image: postgres:12.1-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: cast-db-credentials-prod
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cast-db-credentials-prod
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: cast-db-credentials-prod
+                  key: POSTGRES_DB
+          volumeMounts:
+            - name: cast-db-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+  volumeClaimTemplates:
+    - metadata:
+        name: cast-db-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cast-db-headless
+  namespace: prod
+spec:
+  clusterIP: None
+  selector:
+    app: cast-db
+  ports:
+    - port: 5432
+      targetPort: 5432
