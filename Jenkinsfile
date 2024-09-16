@@ -14,13 +14,29 @@ def dockerBuildAndPush(imageTag) {
     }
 }
 
+// def deployToKubernetes(branchName) {
+//     sh """
+//         mkdir -p .kube
+//         echo "$KUBECONFIG" > .kube/config
+//         mkdir -p ./tmp
+//         cp ${HELM_CHART_PATH}/environments/${branchName}-values.yaml ./tmp/values.yaml
+//         sed -i "s/tag.*/tag: ${DOCKER_TAG}/g" ./tmp/values.yaml
+//         helm upgrade --install movie-api-${branchName} ${HELM_CHART_PATH} --namespace ${branchName} --create-namespace -f ./tmp/values.yaml
+//     """
+// }
 def deployToKubernetes(branchName) {
     sh """
+        echo "BRANCH_NAME: ${branchName}"
+        echo "KUBECONFIG: ${KUBECONFIG}"
+        echo "DOCKER_TAG: ${DOCKER_TAG}"
         mkdir -p .kube
         echo "$KUBECONFIG" > .kube/config
         mkdir -p ./tmp
+        ls -l ${HELM_CHART_PATH}/environments/
         cp ${HELM_CHART_PATH}/environments/${branchName}-values.yaml ./tmp/values.yaml
+        cat ./tmp/values.yaml
         sed -i "s/tag.*/tag: ${DOCKER_TAG}/g" ./tmp/values.yaml
+        cat ./tmp/values.yaml
         helm upgrade --install movie-api-${branchName} ${HELM_CHART_PATH} --namespace ${branchName} --create-namespace -f ./tmp/values.yaml
     """
 }
