@@ -20,7 +20,7 @@ def deployToKubernetes(branchName) {
         echo "$KUBECONFIG" > .kube/config
         mkdir -p ./tmp
         cp ${HELM_CHART_PATH}/environments/${branchName}-values.yaml ./tmp/values.yaml
-        sed -i 's/\(tag: \).*/\1'${DOCKER_TAG}'/' ./tmp/values.yaml
+        sed -i "s/tag:.*/tag: ${DOCKER_TAG}/" ./tmp/values.yaml
         helm upgrade --install movie-api-${branchName} ${HELM_CHART_PATH} --namespace ${branchName} --create-namespace -f ./tmp/values.yaml
     """
 }
