@@ -3,7 +3,7 @@ namespace: dev
 movieService:
   image: damdam1977/movie-service:1.0-dev
   replicas: 1
-  databaseUri: postgresql://movie_db_username:movie_db_password@movie-db.dev.svc.cluster.local/movie_db_dev
+  databaseUri: postgresql://movie_db_user_dev:movie_db_password_dev@movie-db.dev.svc.cluster.local/movie_db_dev
   castServiceHostUrl: "http://cast-service.dev.svc.cluster.local:8000/api/v1/casts/"
   resources:
     requests:
@@ -18,8 +18,8 @@ movieService:
     cpuUtilizationPercentage: 60
 
 movieDb:
-  postgresUser: movie_db_username
-  postgresPassword: movie_db_password
+  postgresUser: movie_db_user_dev
+  postgresPassword: movie_db_password_dev
   postgresDb: movie_db_dev
   resources:
     requests:
@@ -30,9 +30,9 @@ movieDb:
       cpu: "100m"
 
 castService:
-  image: damdam1977/cast-service:1.0-dev
+  image: damdam1977/cast-service:1.0-dev  # image différente avec des outils de dev
   replicas: 1
-  databaseUri: postgresql://cast_db_username:cast_db_password@cast-db.dev.svc.cluster.local/cast_db_dev
+  databaseUri: postgresql://cast_db_user_dev:cast_db_password_dev@cast-db.dev.svc.cluster.local/cast_db_dev
   resources:
     requests:
       memory: "64Mi"
@@ -46,8 +46,8 @@ castService:
     cpuUtilizationPercentage: 60
 
 castDb:
-  postgresUser: cast_db_username
-  postgresPassword: cast_db_password
+  postgresUser: cast_db_user_dev
+  postgresPassword: cast_db_password_dev
   postgresDb: cast_db_dev
   resources:
     requests:
