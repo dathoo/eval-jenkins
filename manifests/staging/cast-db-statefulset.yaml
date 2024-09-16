@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cast-db-credentials-staging
+  namespace: staging
+type: Opaque
+data:
+  castDatabaseUri: cG9zdGdyZXNxbDovL2Nhc3RfZGJfdXNlcl9zdGFnaW5nOmNhc3RfZGJfcGFzc3dvcmRfc3RhZ2luZ0BjYXN0LWRiLnN0YWdpbmcuc3ZjLmNsdXN0ZXIubG9jYWwvY2FzdF9kYl9zdGFnaW5n  # postgresql://cast_db_user_staging:cast_db_password_staging@cast-db.staging.svc.cluster.local/cast_db_staging
+  POSTGRES_USER: Y2FzdF9kYl91c2VyX3N0YWdpbmc=  # cast_db_user_staging
+  POSTGRES_PASSWORD: Y2FzdF9kYl9wYXNzd29yZF9zdGFnaW5n  # cast_db_password_staging
+  POSTGRES_DB: Y2FzdF9kYl9zdGFnaW5n  # cast_db_staging
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cast-db
+  namespace: staging
+spec:
+  serviceName: "cast-db-headless"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cast-db
+  template:
+    metadata:
+      labels:
+        app: cast-db
+    spec:
+      containers:
+        - name: cast-db´
+          image: postgres:12.1-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: cast-db-credentials-staging
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cast-db-credentials-staging
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: cast-db-credentials-staging
+                  key: POSTGRES_DB
+          volumeMounts:
+            - name: cast-db-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+  volumeClaimTemplates:
+    - metadata:
+        name: cast-db-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cast-db-headless
+  namespace: staging
+spec:
+  clusterIP: None
+  selector:
+    app: cast-db
+  ports:
+    - port: 5432
+      targetPort: 5432

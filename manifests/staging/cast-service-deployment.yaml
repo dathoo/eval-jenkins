@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cast-service-staging
+  namespace: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cast-service
+  template:
+    metadata:
+      labels:
+        app: cast-service
+    spec:
+      containers:
+        - name: cast-service
+          image: damdam1977/cast-service:1.0-prod
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: cast-db-credentials-staging
+                  key: castDatabaseUri
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cast-service
+  namespace: staging
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8002
+      targetPort: 8000
+  selector:
+    app: cast-service
