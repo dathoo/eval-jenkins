@@ -4,7 +4,6 @@ movieService:
   image:
     repository: damdam1977/movie-service
     pullPolicy: IfNotPresent
-    # Tag will be override by the BUILD_ID in Jenkinsfile
     tag: ""
   replicas: 1
   databaseUri: postgresql://movie_db_user_staging:movie_db_password_staging@movie-db.staging.svc.cluster.local/movie_db_staging
@@ -37,7 +36,6 @@ castService:
   image:
     repository: damdam1977/cast-service
     pullPolicy: IfNotPresent
-    # Tag will be override by the BUILD_ID in Jenkinsfile
     tag: ""
   replicas: 1
   databaseUri: postgresql://cast_db_user_staging:cast_db_password_staging@cast-db.staging.svc.cluster.local/cast_db_staging
