@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: movie-db-credentials-qa
+  namespace: qa
+type: Opaque
+data:
+  castDatabaseUri: cG9zdGdyZXNxbDovL21vdmllX2RiX3VzZXJfcWE6bW92aWVfZGJfcGFzc3dvcmRfcWFAbW92aWUtZGIucWEuc3ZjLmNsdXN0ZXIubG9jYWwvbW92aWVfZGJfcWE=  # postgresql://movie_db_user_qa:movie_db_password_qa@movie-db.qa.svc.cluster.local/movie_db_qa en base64
+  POSTGRES_USER: bW92aWVfZGJfdXNlcl9xYQ==  # movie_db_user_qa
+  POSTGRES_PASSWORD: bW92aWVfZGJfcGFzc3dvcmRfcWE=  # movie_db_password_qa
+  POSTGRES_DB: bW92aWVfZGJfcWE=  # movie_db_qa
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: movie-config-qa
+  namespace: qa
+data:
+  CAST_SERVICE_HOST_URL: "http://cast-service.qa.svc.cluster.local:8000/api/v1/casts/"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: movie-db
+  namespace: qa
+spec:
+  serviceName: "movie-db-headless"  # Link to the Headless Service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: movie-db
+  template:
+    metadata:
+      labels:
+        app: movie-db
+    spec:
+      containers:
+        - name: movie-db
+          image: postgres:12.1-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: movie-db-credentials-qa
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: movie-db-credentials-qa
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: movie-db-credentials-qa
+                  key: POSTGRES_DB
+          volumeMounts:
+            - name: movie-db-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+  volumeClaimTemplates:
+    - metadata:
+        name: movie-db-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: movie-db-headless
+  namespace: qa
+spec:
+  clusterIP: None  # This makes it a Headless Service
+  selector:
+    app: movie-db
+  ports:
+    - port: 5432
+      targetPort: 5432
