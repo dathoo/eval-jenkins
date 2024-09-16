@@ -3,7 +3,7 @@ namespace: qa
 movieService:
   image: damdam1977/movie-service:1.0-prod
   replicas: 1
-  databaseUri: postgresql://movie_db_username:movie_db_password@movie-db.qa.svc.cluster.local/movie_db_qa
+  databaseUri: postgresql://movie_db_user_qa:movie_db_password_qa@movie-db.qa.svc.cluster.local/movie_db_qa
   castServiceHostUrl: "http://cast-service.qa.svc.cluster.local:8000/api/v1/casts/"
   resources:
     requests:
@@ -18,8 +18,8 @@ movieService:
     cpuUtilizationPercentage: 60
 
 movieDb:
-  postgresUser: movie_db_username
-  postgresPassword: movie_db_password
+  postgresUser: movie_db_user_qa
+  postgresPassword: movie_db_password_qa
   postgresDb: movie_db_qa
   resources:
     requests:
@@ -32,7 +32,7 @@ movieDb:
 castService:
   image: damdam1977/cast-service:1.0-prod
   replicas: 1
-  databaseUri: postgresql://cast_db_username:cast_db_password@cast-db.qa.svc.cluster.local/cast_db_qa
+  databaseUri: postgresql://cast_db_user_qa:cast_db_password_qa@cast-db.qa.svc.cluster.local/cast_db_qa
   resources:
     requests:
       memory: "64Mi"
@@ -46,8 +46,8 @@ castService:
     cpuUtilizationPercentage: 60
 
 castDb:
-  postgresUser: cast_db_username
-  postgresPassword: cast_db_password
+  postgresUser: cast_db_user_qa
+  postgresPassword: cast_db_password_qa
   postgresDb: cast_db_qa
   resources:
     requests:

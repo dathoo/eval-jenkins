@@ -3,7 +3,7 @@ namespace: staging
 movieService:
   image: damdam1977/movie-service:1.0-prod
   replicas: 1
-  databaseUri: postgresql://movie_db_username:movie_db_password@movie-db.staging.svc.cluster.local/movie_db_staging
+  databaseUri: postgresql://movie_db_user_staging:movie_db_password_staging@movie-db.staging.svc.cluster.local/movie_db_staging
   castServiceHostUrl: "http://cast-service.staging.svc.cluster.local:8000/api/v1/casts/"
   resources:
     requests:
@@ -18,8 +18,8 @@ movieService:
     cpuUtilizationPercentage: 60
 
 movieDb:
-  postgresUser: movie_db_username
-  postgresPassword: movie_db_password
+  postgresUser: movie_db_user_staging
+  postgresPassword: movie_db_password_staging
   postgresDb: movie_db_staging
   resources:
     requests:
@@ -32,7 +32,7 @@ movieDb:
 castService:
   image: damdam1977/cast-service:1.0-prod
   replicas: 1
-  databaseUri: postgresql://cast_db_username:cast_db_password@cast-db.staging.svc.cluster.local/cast_db_staging
+  databaseUri: postgresql://cast_db_user_staging:cast_db_password_staging@cast-db.staging.svc.cluster.local/cast_db_staging
   resources:
     requests:
       memory: "64Mi"
@@ -46,8 +46,8 @@ castService:
     cpuUtilizationPercentage: 60
 
 castDb:
-  postgresUser: cast_db_username
-  postgresPassword: cast_db_password
+  postgresUser: cast_db_user_staging
+  postgresPassword: cast_db_password_staging
   postgresDb: cast_db_staging
   resources:
     requests:
