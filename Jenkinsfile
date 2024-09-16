@@ -1,5 +1,5 @@
 def dockerBuildAndPush(imageTag) {
-    sh '''
+    sh """
         cd ./cast-service/
         docker build -t $DOCKER_ID/$DOCKER_IMAGE_CAST:${imageTag} .
         sleep 6
@@ -9,18 +9,18 @@ def dockerBuildAndPush(imageTag) {
         docker login -u $DOCKER_ID -p $DOCKER_PASS
         docker push $DOCKER_ID/$DOCKER_IMAGE_CAST:${imageTag}
         docker push $DOCKER_ID/$DOCKER_IMAGE_MOVIE:${imageTag}
-    '''
+    """
 }
 
 def deployToKubernetes(branchName) {
-    sh '''
+    sh """
         mkdir -p .kube
         echo "$KUBECONFIG" > .kube/config
         mkdir -p ./tmp
         cp ${HELM_CHART_PATH}/environments/${branchName}-values.yaml ./tmp/values.yaml
         sed -i "s/tag.*/tag: ${DOCKER_TAG}/g" ./tmp/values.yaml
         helm upgrade --install movie-api-${branchName} ${HELM_CHART_PATH} --namespace ${branchName} --create-namespace -f ./tmp/values.yaml
-    '''
+    """
 }
 
 pipeline {
