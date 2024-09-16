@@ -1,107 +1,52 @@
 pipeline {
     agent any
+
     environment {
-        KUBE_NAMESPACE = ''
-        HELM_CHART_NAME = "movie-cast-app"
+        GITHUB_REPO = 'https://github.com/dathoo/eval-jenkins.git'
+        HELM_CHART_PATH = './helm-chart'
     }
-    parameters {
-        string(name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment to deploy to')
-    }
+
     stages {
-        // stage('Determine Namespace') {
-        //     steps {
-        //         script {
-        //             switch (env.BRANCH_NAME) {
-        //                 case 'main':
-        //                     KUBE_NAMESPACE = 'prod'
-        //                     break
-        //                 case 'staging':
-        //                     KUBE_NAMESPACE = 'staging'
-        //                     break
-        //                 case 'qa':
-        //                     KUBE_NAMESPACE = 'qa'
-        //                     break
-        //                 default:
-        //                     KUBE_NAMESPACE = 'dev'
-        //             }
-        //         }
-        //     }
-        // }
-        // stage('Checkout') {
-        //     steps {
-        //         git branch: '${BRANCH_NAME}', url: 'https://github.com/dathoo/eval-jenkins.git'
-        //     }
-        // }
-        // stage('Helm Deploy') {
-        //     steps {
-        //         // script {
-        //         //     sh """
-        //         //     helm upgrade --install ${HELM_CHART_NAME} ./helm-chart \\
-        //         //     --namespace ${KUBE_NAMESPACE} \\
-        //         //     --set namespace=${KUBE_NAMESPACE}
-        //         //     """
-        //         // }
-        //         script {
-        //             def environment = "${params.ENVIRONMENT}"
-        //             def valuesFile = "helm-chart/environments/${environment}-values.yaml"
-
-        //             echo "Deploying to environment: ${environment}"
-
-        //             sh """
-        //                 helm upgrade --install movie-cast-app ./helm-chart/ \
-        //                 --namespace ${environment} \
-        //                 --values ${valuesFile}
-        //             """
-        //         }
-        //     }
-        // }
-
-
-        stage('Create Namespaces') {
+        stage('Checkout') {
             steps {
-                // Todo: adapt path to file 
-                sh 'kubectl apply -f namespaces.yaml'
+                git url: "${GITHUB_REPO}", branch: "${BRANCH_NAME}"
             }
         }
-        stage('Build') {
-            steps {
-                // Build steps
-            }
-        }
-        stage('Deploy to Dev') {
+
+        stage('Helm Deployment') {
             when {
-                branch 'dev'
+                not {
+                    branch 'main'
+                }
             }
             steps {
-                // Deploy to Dev
+                script {
+                    if (BRANCH_NAME == 'dev' || BRANCH_NAME == 'qa' || BRANCH_NAME == 'staging') {
+                        sh "helm upgrade --install movie-api-${BRANCH_NAME} ${HELM_CHART_PATH} --namespace ${BRANCH_NAME} --create-namespace -f ${HELM_CHART_PATH}/environments/${BRANCH_NAME}-values.yaml"
+                    }
+                }
             }
         }
-        stage('Deploy to QA') {
-            when {
-                branch 'qa'
-            }
-            steps {
-                // Deploy to QA
-            }
-        }
-        stage('Deploy to Staging') {
-            when {
-                branch 'staging'
-            }
-            steps {
-                // Deploy to Staging
-            }
-        }
-        stage('Manual Approval for Production') {
+
+        stage('Manual Prod Deployment') {
             when {
                 branch 'main'
             }
-            input {
-                message "Déployer en Production?"
-            }
             steps {
-                // Deploy to Production
+                script {
+                    input message: 'Deploy to Production?', ok: 'Deploy'
+                    sh "movie-api-prod ${HELM_CHART_PATH} --namespace prod --create-namespace -f ${HELM_CHART_PATH}/environments/prod-values.yaml"
+                }
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Deployment successful!'
+        }
+        failure {
+            echo 'Deployment failed!'
         }
     }
 }
