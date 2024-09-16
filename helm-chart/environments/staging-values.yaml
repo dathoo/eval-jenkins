@@ -1,11 +1,7 @@
 namespace: staging
 
 movieService:
-  image:
-    repository: damdam1977/movie-service
-    pullPolicy: IfNotPresent
-    # Tag will be override by the BUILD_ID in Jenkinsfile
-    tag: ""
+  image: damdam1977/movie-service:tag
   replicas: 1
   databaseUri: postgresql://movie_db_user_staging:movie_db_password_staging@movie-db.staging.svc.cluster.local/movie_db_staging
   castServiceHostUrl: "http://cast-service.staging.svc.cluster.local:8000/api/v1/casts/"
@@ -34,11 +30,7 @@ movieDb:
       cpu: "100m"
 
 castService:
-  image:
-    repository: damdam1977/cast-service
-    pullPolicy: IfNotPresent
-    # Tag will be override by the BUILD_ID in Jenkinsfile
-    tag: ""
+  image: damdam1977/cast-service:tag
   replicas: 1
   databaseUri: postgresql://cast_db_user_staging:cast_db_password_staging@cast-db.staging.svc.cluster.local/cast_db_staging
   resources:
