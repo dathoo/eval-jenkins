@@ -114,10 +114,10 @@ pipeline {
         failure {
             echo 'Deployment failed!'
         }
-        // always {
-        //     script {
-        //         sh 'rm -rf ./tmp'
-        //     }
-        // }
+        always {
+            script {
+                sh 'rm -rf ./tmp'
+            }
+        }
     }
 }
