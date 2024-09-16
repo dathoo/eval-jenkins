@@ -6,7 +6,7 @@ def dockerBuildAndPush(imageTag) {
                 docker build -t $DOCKER_ID/\$service:${imageTag} .
                 cd ..
             done
-            echo $DOCKER_PASS | docker login -u $DOCKER_ID --password-stdin
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_ID" --password-stdin
             for service in cast-service movie-service; do
                 docker push $DOCKER_ID/\$service:${imageTag}
             done
