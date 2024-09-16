@@ -1,15 +1,15 @@
 def dockerBuildAndPush(imageTag) {
     withCredentials([string(credentialsId: 'DOCKER_HUB_PASS', variable: 'DOCKER_PASS')]) {
         sh """
-            cd ./cast-service/
-            docker build -t $DOCKER_ID/$DOCKER_IMAGE_CAST:${imageTag} .
-            sleep 6
-            cd ../movie-service/
-            docker build -t $DOCKER_ID/$DOCKER_IMAGE_MOVIE:${imageTag} .
-            sleep 6
-            docker login -u $DOCKER_ID -p ${DOCKER_PASS}
-            docker push $DOCKER_ID/$DOCKER_IMAGE_CAST:${imageTag}
-            docker push $DOCKER_ID/$DOCKER_IMAGE_MOVIE:${imageTag}
+            for service in cast-service movie-service; do
+                cd ./\$service/
+                docker build -t $DOCKER_ID/\$service:${imageTag} .
+                cd ..
+            done
+            echo $DOCKER_PASS | docker login -u $DOCKER_ID --password-stdin
+            for service in cast-service movie-service; do
+                docker push $DOCKER_ID/\$service:${imageTag}
+            done
         """
     }
 }
