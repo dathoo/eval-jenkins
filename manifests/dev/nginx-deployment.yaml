@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-dev
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config-dev
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config-dev
+  namespace: dev
+data:
+  default.conf: |
+    server {
+      listen 8080;
+
+      location /api/v1/movies {
+        proxy_pass http://movie-service.dev.svc.cluster.local:8000/api/v1/movies;
+      }
+
+      location /api/v1/casts {
+        proxy_pass http://cast-service.dev.svc.cluster.local:8000/api/v1/casts;
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: dev
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: nginx
