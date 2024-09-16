@@ -36,7 +36,7 @@ pipeline {
             steps {
                 script {
                     input message: 'Deploy to Production?', ok: 'Deploy'
-                    sh "movie-api-prod ${HELM_CHART_PATH} --namespace prod --create-namespace -f ${HELM_CHART_PATH}/environments/prod-values.yaml"
+                    sh "helm upgrade --install movie-api-prod ${HELM_CHART_PATH} --namespace prod --create-namespace -f ${HELM_CHART_PATH}/environments/prod-values.yaml"
                 }
             }
         }
