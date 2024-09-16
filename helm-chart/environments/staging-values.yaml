@@ -4,7 +4,7 @@ movieService:
   image:
     repository: damdam1977/movie-service
     pullPolicy: IfNotPresent
-    tag: ""
+    tag: v.1.0
   replicas: 1
   databaseUri: postgresql://movie_db_user_staging:movie_db_password_staging@movie-db.staging.svc.cluster.local/movie_db_staging
   castServiceHostUrl: "http://cast-service.staging.svc.cluster.local:8000/api/v1/casts/"
@@ -36,7 +36,7 @@ castService:
   image:
     repository: damdam1977/cast-service
     pullPolicy: IfNotPresent
-    tag: ""
+    tag: v.1.0
   replicas: 1
   databaseUri: postgresql://cast_db_user_staging:cast_db_password_staging@cast-db.staging.svc.cluster.local/cast_db_staging
   resources:
